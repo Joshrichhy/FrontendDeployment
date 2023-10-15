@@ -1,0 +1,31 @@
+
+version: 0.2
+env:
+  variables:
+    S3_ENVIRONMENT_BUCKET: "devops-demo-enf"
+    Project: "frontend"
+    Service: "service"
+    ENVIRONMENT_FILE: "devops_demo_env"
+phases:
+  install:
+    commands:
+      - npm i -g npm@8.5.1
+      - pip install --upgrade pip
+      - pip install --upgrade awscli
+  pre_build:
+    commands:
+      - echo Pre_build Phase
+      - npm install
+  build:
+    commands:
+      - aws s3 cp s3://${S3_ENVIRONMENT_BUCKET}/${Project}/${Service}/${ENVIRONMENT_FILE} .env
+      - echo Build Phase
+      - npm run build
+
+  post_build:
+    commands:
+      - echo PostBuild Phase
+      - aws s3 sync ./build s3://devops-demo-stf
+      - aws cloudfront create-invalidation --distribution-id EBZ7DEHW48K4X --paths "/*";
+
+
